@@ -7,7 +7,7 @@ import './Home.css';
 export const Home = () => {
   const { tasks, loading, error, createTask, fetchTasks } = useTasks();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const { task: currentTask, loading: detailLoading, fetchTask } = useTask(selectedTask?.id || '');
+  const { task: currentTask, loading: _detailLoading, fetchTask } = useTask(selectedTask?.id || '');
 
   const handleCreateTask = async (description: string) => {
     const task = await createTask(description);

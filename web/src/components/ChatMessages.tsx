@@ -7,7 +7,7 @@ interface ChatMessagesProps {
   selectedTask: Task | null;
 }
 
-export const ChatMessages: React.FC<ChatMessagesProps> = ({ tasks, selectedTask }) => {
+export const ChatMessages: React.FC<ChatMessagesProps> = ({ tasks: _tasks, selectedTask }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {

@@ -7,13 +7,18 @@ export interface Task {
   userId: string;
   channel: string;
   input: string;
-  status: string;
+  description?: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'paused';
+  progress?: number;
   currentStep: number;
   subtasks: any[];
   createdAt: string;
   updatedAt: string;
+  completedAt?: string;
   result?: any;
   error?: string;
+  think?: string;
+  metadata?: Record<string, any>;
 }
 
 export const api = {
