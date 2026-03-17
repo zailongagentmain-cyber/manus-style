@@ -22,66 +22,51 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ tasks: _tasks, selec
     return (
       <div className="chat-messages-empty">
         <div className="empty-icon">💬</div>
-        <p>选择一个任务查看对话历史</p>
+        <p>Select a task to view the conversation</p>
       </div>
     );
   }
 
   return (
     <div className="chat-messages">
-      {/* 用户消息 - 任务输入 */}
+      {/* User Message */}
       <div className="message user-message">
         <div className="message-avatar">👤</div>
         <div className="message-content">
           <div className="message-header">
-            <span className="message-sender">你</span>
+            <span className="message-sender">You</span>
             <span className="message-time">
               {new Date(selectedTask.createdAt).toLocaleTimeString()}
             </span>
           </div>
           <div className="message-text">
-            {selectedTask.input || selectedTask.description}
+            {selectedTask.input || selectedTask.description || 'No description'}
           </div>
         </div>
       </div>
 
-      {/* AI 思考过程 */}
+      {/* AI Thinking Process */}
       {selectedTask.status === 'running' && (
-        <div className="message ai-message thinking">
+        <div className="message ai-thinking">
           <div className="message-avatar">🤖</div>
-          <div className="message-content">
-            <div className="message-header">
-              <span className="message-sender">AI 助手</span>
-              <span className="message-status">思考中...</span>
+          <div className="message-content thinking-content">
+            <div className="thinking-header">
+              <span className="thinking-label">AI is thinking</span>
+              <span className="thinking-status">Processing...</span>
             </div>
-            <div className="message-thinking">
-              <span className="thinking-dots">
-                <span>.</span><span>.</span><span>.</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* AI 消息 - 执行步骤 */}
-      {selectedTask.subtasks && selectedTask.subtasks.length > 0 && (
-        <div className="message ai-message">
-          <div className="message-avatar">🤖</div>
-          <div className="message-content">
-            <div className="message-header">
-              <span className="message-sender">AI 助手</span>
-              <span className="message-time">
-                {new Date(selectedTask.updatedAt).toLocaleTimeString()}
-              </span>
-            </div>
-            <div className="message-steps">
-              <p>我来帮你完成这个任务：</p>
-              {selectedTask.subtasks.map((sub: any, idx: number) => (
-                <div key={sub.id || idx} className={`step-item ${sub.status}`}>
-                  <span className="step-status">
-                    {sub.status === 'completed' ? '✅' : sub.status === 'running' ? '🔄' : '⏳'}
+            {selectedTask.think && (
+              <div className="thinking-text">
+                {selectedTask.think}
+              </div>
+            )}
+            <div className="thinking-steps">
+              {selectedTask.subtasks?.map((subtask, index) => (
+                <div key={index} className={`step-item ${subtask.status}`}>
+                  <span className="step-icon">
+                    {subtask.status === 'completed' ? '✅' : 
+                     subtask.status === 'running' ? '🔄' : '⏳'}
                   </span>
-                  <span className="step-text">{sub.description || sub.agent}</span>
+                  <span className="step-text">{subtask.description}</span>
                 </div>
               ))}
             </div>
@@ -89,21 +74,28 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ tasks: _tasks, selec
         </div>
       )}
 
-      {/* AI 消息 - 执行结果 */}
-      {selectedTask.status === 'completed' && selectedTask.result && (
-        <div className="message ai-message result">
+      {/* AI Response */}
+      {(selectedTask.status === 'completed' || selectedTask.status === 'running') && (
+        <div className="message ai-message">
           <div className="message-avatar">🤖</div>
           <div className="message-content">
             <div className="message-header">
-              <span className="message-sender">AI 助手</span>
+              <span className="message-sender">Manus Style</span>
               <span className="message-time">
-                {new Date(selectedTask.updatedAt).toLocaleTimeString()}
+                {selectedTask.updatedAt ? new Date(selectedTask.updatedAt).toLocaleTimeString() : ''}
               </span>
             </div>
-            <div className="message-result">
-              <p>✅ 任务完成！</p>
-              <pre>{JSON.stringify(selectedTask.result, null, 2)}</pre>
-            </div>
+            {selectedTask.think && (
+              <div className="message-think">
+                <span className="think-label">Thinking:</span>
+                {selectedTask.think}
+              </div>
+            )}
+            {selectedTask.result && (
+              <div className="message-result">
+                {typeof selectedTask.result === 'string' ? selectedTask.result : JSON.stringify(selectedTask.result, null, 2)}
+              </div>
+            )}
           </div>
         </div>
       )}
