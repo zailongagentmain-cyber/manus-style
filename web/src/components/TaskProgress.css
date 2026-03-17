@@ -1,0 +1,66 @@
+.task-progress {
+  padding: 16px;
+  background: #252525;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  color: #999;
+  font-size: 14px;
+}
+
+.progress-percent {
+  color: #4a9eff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.progress-track {
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.pending {
+  background: #ccaa33;
+}
+
+.progress-fill.running {
+  background: linear-gradient(90deg, #4a9eff, #6bb3ff);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.progress-fill.completed {
+  background: #33cc66;
+}
+
+.progress-fill.failed {
+  background: #ff6666;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.progress-status {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}

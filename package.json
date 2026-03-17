@@ -1,0 +1,56 @@
+{
+  "name": "manus-style",
+  "version": "1.0.0",
+  "description": "基于 OpenClaw 的通用 AI Agent 任务执行系统",
+  "main": "dist/index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:api": "tsc --project tsconfig.json",
+    "start": "node dist/index.js",
+    "start:api": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "dev:api": "ts-node src/index.ts",
+    "test": "jest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:watch": "jest --watch",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "openclaw",
+    "manus"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.5.0",
+    "@types/supertest": "^7.2.0",
+    "@types/ws": "^8.18.1",
+    "eslint": "^10.0.3",
+    "express": "^5.2.1",
+    "jest": "^30.3.0",
+    "prettier": "^3.8.1",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "ws": "^8.19.0"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/uuid": "^10.0.0",
+    "cors": "^2.8.6",
+    "toml": "^3.0.0",
+    "uuid": "^13.0.0"
+  }
+}

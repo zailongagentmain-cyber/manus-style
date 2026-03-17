@@ -1,0 +1,17 @@
+{
+  "tasks": [
+    {
+      "id": "task_1773689737552_255672c5",
+      "userId": "user_1",
+      "channel": "feishu",
+      "input": "test",
+      "status": "failed",
+      "currentStep": 0,
+      "subtasks": [],
+      "createdAt": "2026-03-16T19:35:37.552Z",
+      "updatedAt": "2026-03-16T19:35:37.552Z",
+      "metadata": {},
+      "error": "Task cancelled by user"
+    }
+  ]
+}

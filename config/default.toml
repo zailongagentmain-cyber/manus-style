@@ -1,0 +1,51 @@
+# Manus Style 配置文件
+# 默认配置 - 使用 MiniMax 作为 LLM
+
+[llm]
+model = "abab6.5s-chat"
+base_url = "https://api.minimax.chat/v1"
+api_key = "${MINIMAX_API_KEY}"
+max_tokens = 8192
+temperature = 0.7
+
+# Agent 能力映射
+[agents.malong]
+capabilities = ["code", "data", "research"]
+timeout = 300
+
+[agents.longyaren]
+capabilities = ["code", "research"]
+timeout = 300
+
+[agents.search]
+capabilities = ["search", "web"]
+timeout = 60
+
+[agents.browser]
+capabilities = ["browser", "automation"]
+timeout = 120
+
+# 存储配置
+[storage]
+type = "json"
+path = "./data/storage.json"
+
+# 沙箱配置 (可选)
+[sandbox]
+enabled = false
+workspace = "./sandbox"
+memory = "512Mi"
+
+[sandbox.agent]
+agentId = "sandbox-agent"
+
+[sandbox.limits]
+maxConcurrent = 5
+timeout = 300
+maxMemory = "1Gi"
+maxFileSize = "100Mi"
+
+[sandbox.network]
+port = 3001
+allowedHosts = ["*.api.minimax.chat", "*.github.com"]
+blockedHosts = ["localhost", "127.0.0.1"]

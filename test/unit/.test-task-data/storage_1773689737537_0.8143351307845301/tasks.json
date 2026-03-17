@@ -1,0 +1,16 @@
+{
+  "tasks": [
+    {
+      "id": "task_1",
+      "userId": "user_1",
+      "channel": "feishu",
+      "input": "test input",
+      "status": "pending",
+      "currentStep": 0,
+      "subtasks": [],
+      "createdAt": "2026-03-16T19:35:37.538Z",
+      "updatedAt": "2026-03-16T19:35:37.538Z",
+      "metadata": {}
+    }
+  ]
+}

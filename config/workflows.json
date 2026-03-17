@@ -1,0 +1,46 @@
+{
+  "workflows": [
+    {
+      "id": "esg-carbon",
+      "name": "ESG 碳资产认证",
+      "description": "碳资产权证的完整认证流程",
+      "path": "projects/esg-carbon/workflows/esg-carbon.yaml",
+      "category": "ESG",
+      "icon": "🌱"
+    },
+    {
+      "id": "stock-analysis",
+      "name": "股票分析",
+      "description": "股票数据分析和可视化",
+      "path": "projects/stock-analysis/workflow.yaml",
+      "category": "Finance",
+      "icon": "📈"
+    },
+    {
+      "id": "document-extraction",
+      "name": "文档提取",
+      "description": "从PDF提取数据并可视化",
+      "category": "Productivity",
+      "icon": "📄"
+    }
+  ],
+  "presets": [
+    {
+      "id": "esg-solar",
+      "name": "光伏碳资产项目分析",
+      "workflow": "esg-carbon",
+      "params": {
+        "project_type": "solar",
+        "capacity": "100MW"
+      }
+    },
+    {
+      "id": "esg-forest",
+      "name": "林业碳汇项目分析",
+      "workflow": "esg-carbon",
+      "params": {
+        "project_type": "forestry"
+      }
+    }
+  ]
+}

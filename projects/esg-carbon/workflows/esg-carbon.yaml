@@ -1,0 +1,112 @@
+name: ESG Carbon Credit Certification
+description: 碳资产权认证工作流 - 从项目设计到CCER签发
+
+triggers:
+  - type: manual
+    description: 手动触发碳资产认证流程
+  
+  - type: scheduled
+    description: 定期检查认证状态
+
+stages:
+  - id: 1_project_design
+    name: 项目设计
+    description: 开发减排项目计划，遵循批准的方法学
+    agents:
+      - role: analyzer
+        task: 分析项目类型和适用方法学
+        tools:
+          - web_search
+          - document_generator
+    
+    outputs:
+      - project_design_document
+      - methodology_selection
+
+  - id: 2_application
+    name: 项目申请与公示
+    description: 提交项目文件并公开披露
+    agents:
+      - role: preparer
+        task: 准备申请材料
+        tools:
+          - document_generator
+          - pdf_parser
+    
+    outputs:
+      - application_form
+      - disclosure_document
+
+  - id: 3_validation
+    name: 第三方核查
+    description: 独立第三方机构评估
+    agents:
+      - role: coordinator
+        task: 协调第三方核查机构
+        tools:
+          - notification_service
+    
+    outputs:
+      - validation_report
+
+  - id: 4_registration
+    name: 项目注册
+    description: 在国家自愿减排交易系统登记
+    agents:
+      - role: submitter
+        task: 提交注册申请
+        tools:
+          - api_client
+    
+    outputs:
+      - registration_confirmation
+
+  - id: 5_monitoring
+    name: 实施与监测
+    description: 执行减排活动并持续监测
+    agents:
+      - role: monitor
+        task: 监测项目绩效
+        tools:
+          - scheduler
+    
+    outputs:
+      - monitoring_report
+
+  - id: 6_verification
+    name: 减排量核查
+    description: 第三方机构核查减排量
+    agents:
+      - role: coordinator
+        task: 协调核查进度
+        tools:
+          - notification_service
+    
+    outputs:
+      - verification_certificate
+
+  - id: 7_issuance
+    name: CCER签发与交易
+    description: 获得碳资产证书并在市场交易
+    agents:
+      - role: trader
+        task: 执行交易操作
+        tools:
+          - api_client
+    
+    outputs:
+      - carbon_credits
+      - transaction_record
+
+methods:
+  - name: 方法学选择
+    description: 根据项目类型推荐适用的CCER方法学
+    
+  - name: 文档模板
+    description: 自动生成项目设计文件模板
+    
+  - name: 进度跟踪
+    description: 实时跟踪各阶段审批进度
+    
+  - name: 提醒通知
+    description: 自动提醒关键节点和截止日期
