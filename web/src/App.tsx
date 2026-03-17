@@ -21,7 +21,7 @@ const EXAMPLES = [
   { icon: '🔍', text: 'Research', query: 'Research the latest AI developments in 2026' },
 ];
 
-const API_BASE = 'http://localhost:3001/api/v1';
+const API_BASE = 'https://manus-style.vercel.app/api/v1';
 
 function App() {
   const [input, setInput] = useState('');
