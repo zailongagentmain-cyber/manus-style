@@ -1,0 +1,83 @@
+# ESG 碳资产工作流配置
+
+## 工作流定义
+
+workflow_name: esg_carbon_certification
+description: CCER碳资产认证工作流
+
+## 步骤配置
+
+### Step 1: 需求分析
+```yaml
+- name: requirement_analysis
+  agent: analysis
+  description: 分析用户项目类型和认证需求
+  inputs:
+    - 项目类型（林业/光伏/风电等）
+    - 项目规模
+    - 地理位置
+  outputs:
+    - 项目类型判定
+    - 适用方法学推荐
+```
+
+### Step 2: 方法学匹配
+```yaml
+- name: methodology_matching
+  agent: search
+  description: 搜索适用的CCER方法学
+  inputs:
+    - 项目类型
+  outputs:
+    - 适用方法学列表
+    - 方法学编号
+```
+
+### Step 3: 减排量核算
+```yaml
+- name: emission_calculation
+  agent: code
+  description: 计算项目预计减排量
+  inputs:
+    - 项目规模数据
+    - 方法学参数
+  outputs:
+    - 年减排量（吨CO2）
+    - 计入期
+```
+
+### Step 4: 文档生成
+```yaml
+- name: document_generation
+  agent: code
+  description: 生成项目设计文档框架
+  inputs:
+    - 项目信息
+    - 方法学要求
+  outputs:
+    - PDD框架
+    - 所需材料清单
+```
+
+## 支持的项目类型
+
+| 类型 | 方法学 | 行业 |
+|------|--------|------|
+| 造林碳汇 | CCER-01 | 林业 |
+| 森林经营 | CCER-02 | 林业 |
+| 并网光伏 | CCER-06 | 能源 |
+| 风电 | CCER-04 | 能源 |
+| 生物质发电 | CCER-05 | 能源 |
+| 垃圾焚烧发电 | CCER-07 | 能源 |
+
+## 示例调用
+
+```bash
+curl -X POST http://localhost:3001/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "user_001",
+    "channel": "web",
+    "message": "我有一个50MW光伏发电项目，需要CCER认证"
+  }'
+```
