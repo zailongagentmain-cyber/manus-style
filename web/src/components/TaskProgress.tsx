@@ -3,7 +3,7 @@ import './TaskProgress.css';
 
 interface TaskProgressProps {
   progress?: number;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'paused';
 }
 
 export const TaskProgress: React.FC<TaskProgressProps> = ({ progress = 0, status }) => {
