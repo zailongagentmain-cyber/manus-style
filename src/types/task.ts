@@ -39,6 +39,8 @@ export interface Task {
   userId: string;
   channel: Channel;
   input: string;
+  description?: string;  // 任务描述
+  think?: string;        // AI 思考过程
   status: TaskStatus;
   currentStep: number;
   subtasks: Subtask[];
