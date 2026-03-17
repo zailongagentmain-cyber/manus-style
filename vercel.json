@@ -1,6 +1,19 @@
 {
-  "buildCommand": "cd web && npm run build",
-  "outputDirectory": "web/dist",
-  "installCommand": "cd web && npm install",
-  "framework": "vite"
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "/api/v1/tasks",
+      "dest": "/api/index.ts"
+    }
+  ]
 }
