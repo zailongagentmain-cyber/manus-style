@@ -55,8 +55,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return getTask(taskId!, res);
   }
   
-  // SSE Chat Stream endpoint
-  if (path === '/api/chat-stream' && method === 'POST') {
+  // SSE Chat Stream endpoint (支持 /api/chat-stream 和 /api/v1/chat-stream)
+  if ((path === '/api/chat-stream' || path === '/api/v1/chat-stream') && method === 'POST') {
     return chatStream(req, res);
   }
   
