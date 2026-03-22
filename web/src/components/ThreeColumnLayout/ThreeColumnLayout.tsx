@@ -25,8 +25,10 @@ interface ThreeColumnLayoutProps {
   messages?: Message[];
   onFileSelect?: (file: FileNode) => void;
   onSendMessage?: (message: string) => void;
+  onAIResponse?: (content: string) => void;
   modelName?: string;
   connectionStatus?: 'connected' | 'disconnected' | 'connecting';
+  apiBase?: string;
 }
 
 const defaultFiles: FileNode[] = [
@@ -93,9 +95,13 @@ export function ThreeColumnLayout({
   messages = defaultMessages,
   onFileSelect,
   onSendMessage,
+  onAIResponse: _onAIResponse,
   modelName = 'MiniMax-CN 2.5',
-  connectionStatus = 'connected'
+  connectionStatus = 'connected',
+  apiBase = '/api/v1'
 }: ThreeColumnLayoutProps) {
+  // TODO: 使用 onAIResponse 回调
+  void _onAIResponse;
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [currentMessages, setCurrentMessages] = useState<Message[]>(messages);
 
@@ -146,7 +152,7 @@ export function ThreeColumnLayout({
 
       {/* 中间工作区 (自适应) */}
       <main className="flex-1 bg-[#0a0a0f] flex flex-col min-w-0">
-        <Workspace selectedFile={selectedFile} />
+        <Workspace selectedFile={selectedFile} apiBase={apiBase} />
       </main>
 
       {/* 右侧对话面板 (400px) */}
