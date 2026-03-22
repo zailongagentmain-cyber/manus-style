@@ -57,36 +57,26 @@ export function ChatPanel({
 
   // 发送消息并处理 SSE 流式响应
   const sendStreamMessage = useCallback(async (message: string) => {
-    // 添加用户消息
-    const userMessage: Message = {
-      id: `msg_${Date.now()}_user`,
-      role: 'user',
-      content: message,
-      timestamp: new Date()
-    };
-    onSendMessage?.(message);
+    console.log('[ChatPanel] 发送消息:', message);
+    console.log('[ChatPanel] API_BASE:', API_BASE);
 
-    // 创建 AI 消息占位
-    const aiMessageId = `msg_${Date.now()}_ai`;
-    const aiMessage: Message = {
-      id: aiMessageId,
-      role: 'assistant',
-      content: '',
-      timestamp: new Date()
-    };
-    
-    // 临时显示空的 AI 消息
-    setStreamingContent('正在思考');
+    // 临时显示 AI 消息（加载状态）
+    setStreamingContent('正在思考...');
     setIsStreaming(true);
 
     try {
-      const response = await fetch(`${API_BASE}/chat-stream`, {
+      const url = `${API_BASE}/chat-stream`;
+      console.log('[ChatPanel] 发送请求到:', url);
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ message })
       });
+
+      console.log('[ChatPanel] 响应状态:', response.status);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
