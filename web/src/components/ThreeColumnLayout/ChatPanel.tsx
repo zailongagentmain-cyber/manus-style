@@ -10,6 +10,7 @@ const API_BASE = import.meta.env.DEV
 interface ChatPanelProps {
   messages: Message[];
   onSendMessage?: (message: string) => void;
+  onAIResponse?: (content: string) => void;
   modelName?: string;
   connectionStatus?: 'connected' | 'disconnected' | 'connecting';
 }
@@ -39,7 +40,8 @@ function ConnectionIndicator({ status }: { status: 'connected' | 'disconnected' 
 
 export function ChatPanel({ 
   messages, 
-  onSendMessage, 
+  onSendMessage,
+  onAIResponse, 
   modelName = 'MiniMax-CN 2.5',
   connectionStatus = 'connected'
 }: ChatPanelProps) {
@@ -122,7 +124,10 @@ export function ChatPanel({
                 accumulatedContent += data.content;
                 setStreamingContent(accumulatedContent);
               } else if (data.type === 'complete') {
-                // 流完成
+                // 流完成：将 AI 消息添加到消息列表
+                if (accumulatedContent) {
+                  onAIResponse?.(accumulatedContent);
+                }
                 setIsStreaming(false);
                 setStreamingContent('');
               }

@@ -115,6 +115,17 @@ export function ThreeColumnLayout({
     onSendMessage?.(content);
   };
 
+  // 处理 AI 回复（流式完成后调用）
+  const handleAIResponse = (content: string) => {
+    const aiMessage: Message = {
+      id: `msg_${Date.now()}`,
+      role: 'assistant',
+      content,
+      timestamp: new Date()
+    };
+    setCurrentMessages(prev => [...prev, aiMessage]);
+  };
+
   return (
     <div className="flex h-screen bg-[#0a0a0f] text-white overflow-hidden">
       {/* 左侧边栏 - 文件树 (250px) */}
@@ -143,6 +154,7 @@ export function ThreeColumnLayout({
         <ChatPanel 
           messages={currentMessages}
           onSendMessage={handleSendMessage}
+          onAIResponse={handleAIResponse}
           modelName={modelName}
           connectionStatus={connectionStatus}
         />
