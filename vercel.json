@@ -18,14 +18,14 @@
       "use": "@vercel/static"
     },
     {
-      "src": "src/api/server.ts",
+      "src": "api/index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/src/api/server.ts"
+      "dest": "/api/index.ts"
     },
     {
       "src": "/assets/(.*)",
