@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// Use localhost for development, Vercel for production
-const API_BASE = import.meta.env.DEV 
-  ? 'http://localhost:3001/api/v1' 
-  : 'https://manus-style.vercel.app/api/v1';
+// Use relative path for API (works both locally and on Vercel)
+const API_BASE = '/api/v1';
 
 export interface Task {
   id: string;

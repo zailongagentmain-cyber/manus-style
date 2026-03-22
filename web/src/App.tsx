@@ -24,8 +24,8 @@ const EXAMPLES = [
   { icon: '🔍', text: 'Research', query: 'Research the latest AI developments in 2026' },
 ];
 
-// 使用本地 API（开发环境）
-const API_BASE = 'http://localhost:3001/api/v1';
+// 使用生产环境 API
+const API_BASE = '/api/v1';
 
 function App() {
   const [input, setInput] = useState('');
