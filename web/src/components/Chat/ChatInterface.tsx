@@ -15,7 +15,7 @@ interface ChatInterfaceProps {
   apiBase?: string;
 }
 
-export function ChatInterface({ taskId, onClose, apiBase = 'http://localhost:3001/api/v1' }: ChatInterfaceProps) {
+export function ChatInterface({ taskId, onClose, apiBase = '/api/v1' }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
