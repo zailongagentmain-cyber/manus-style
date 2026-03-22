@@ -66,14 +66,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   
   // 文件相关 API
-  // GET /api/files - 获取文件列表
-  if (path === '/api/files' && method === 'GET') {
+  // GET /api/v1/files - 获取文件列表
+  if (path === '/api/v1/files' && method === 'GET') {
     return getFileList(req, res);
   }
   
-  // GET /api/file/* - 获取单个文件内容
-  if (path.startsWith('/api/file/') && method === 'GET') {
-    const filePath = path.replace('/api/file/', '');
+  // GET /api/v1/file/* - 获取单个文件内容
+  if (path.startsWith('/api/v1/file/') && method === 'GET') {
+    const filePath = path.replace('/api/v1/file/', '');
     return getFileContent(req, res, filePath);
   }
   
