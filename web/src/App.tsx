@@ -1,6 +1,9 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
+import './index.css';
 import './App.css';
+import { ChatInterface } from './components/Chat';
+import { ThreeColumnLayout } from './components/ThreeColumnLayout';
 
 interface Task {
   id: string;
@@ -21,22 +24,39 @@ const EXAMPLES = [
   { icon: '🔍', text: 'Research', query: 'Research the latest AI developments in 2026' },
 ];
 
-const API_BASE = 'https://manus-style.vercel.app/api/v1';
+// 使用本地 API（开发环境）
+const API_BASE = 'http://localhost:3001/api/v1';
 
 function App() {
   const [input, setInput] = useState('');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [mode, setMode] = useState<'single' | 'chat' | 'three-column'>('single');
 
   useEffect(() => { loadTasks(); }, []);
   
+  // 只使用这一个轮询，避免重复
   useEffect(() => {
-    if (selectedTask?.status === 'running') {
-      const interval = setInterval(() => refreshTask(selectedTask.id), 2000);
-      return () => clearInterval(interval);
-    }
-  }, [selectedTask?.status]);
+    if (!selectedTask || selectedTask.status !== 'running') return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/tasks/${selectedTask.id}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setTasks(prev => prev.map(t => t.id === selectedTask.id ? data.data : t));
+          setSelectedTask(prev => prev?.id === selectedTask.id ? data.data : prev);
+          // 任务完成后自动停止轮询
+          if (data.data.status === 'completed' || data.data.status === 'failed') {
+            setIsProcessing(false);
+          }
+        }
+      } catch (e) { console.error('Refresh failed'); }
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [selectedTask?.id, selectedTask?.status]);
 
   const loadTasks = async () => {
     try {
@@ -78,6 +98,7 @@ function App() {
     setSelectedTask(newTask);
     setInput('');
 
+    let useSimulation = false;
     try {
       const res = await fetch(`${API_BASE}/tasks`, {
         method: 'POST',
@@ -86,11 +107,23 @@ function App() {
       });
       const data = await res.json();
       if (data.success && data.data) {
-        setTasks(prev => prev.map(t => t.id === newTask.id ? { ...t, id: data.data.id } : t));
-        setSelectedTask(prev => prev?.id === newTask.id ? { ...prev, id: data.data.id } : prev);
-        pollTaskStatus(data.data.id);
-      } else { throw new Error('Failed'); }
-    } catch (e) { simulateTask(newTask.id, query); }
+        // 用 API 返回的任务替换本地任务
+        setTasks(prev => prev.map(t => t.id === newTask.id ? { ...t, ...data.data } : t));
+        setSelectedTask(prev => prev?.id === newTask.id ? { ...prev, ...data.data } : prev);
+        // 不在这里启动轮询，让 useEffect 处理
+        setIsProcessing(false);
+        return;
+      } else { 
+        useSimulation = true; 
+      }
+    } catch (e) { 
+      useSimulation = true; 
+    }
+    
+    // 只有 API 失败时才使用本地模拟
+    if (useSimulation) {
+      simulateTask(newTask.id, query);
+    }
     setIsProcessing(false);
   };
 
@@ -145,25 +178,60 @@ function App() {
           <a href="#docs">Docs</a>
           <a href="#examples">Examples</a>
         </nav>
+        <div className="mode-switch">
+          <button 
+            className={mode === 'single' ? 'active' : ''} 
+            onClick={() => setMode('single')}
+            title="单次输入模式"
+          >
+            📝 单次
+          </button>
+          <button 
+            className={mode === 'chat' ? 'active' : ''} 
+            onClick={() => setMode('chat')}
+            title="对话模式"
+          >
+            💬 对话
+          </button>
+          <button 
+            className={mode === 'three-column' ? 'active' : ''} 
+            onClick={() => setMode('three-column')}
+            title="三栏布局"
+          >
+            📊 三栏
+          </button>
+        </div>
         <div className="status"><span className="status-dot"></span>Ready</div>
       </header>
 
       <main className="main">
-        <section className="hero">
-          <h1>What can I do for you?</h1>
-          <p>Assign a task or ask anything</p>
-          <div className="input-box">
-            <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit(input)} placeholder="Describe what you want me to do..." disabled={isProcessing} />
-            <button onClick={() => handleSubmit(input)} disabled={!input.trim() || isProcessing}>{isProcessing ? '⏳' : '➤'}</button>
+        {mode === 'three-column' ? (
+          <ThreeColumnLayout />
+        ) : mode === 'chat' ? (
+          <div className="chat-mode">
+            <ChatInterface 
+              taskId={selectedTask?.id || null}
+              apiBase={API_BASE}
+              onClose={() => setSelectedTask(null)}
+            />
           </div>
-          <div className="quick-actions">
-            {EXAMPLES.map((ex, i) => (
-              <button key={i} onClick={() => handleSubmit(ex.query)} disabled={isProcessing}><span>{ex.icon}</span><span>{ex.text}</span></button>
-            ))}
-          </div>
-        </section>
+        ) : (
+          <>
+            <section className="hero">
+              <h1>What can I do for you?</h1>
+              <p>Assign a task or ask anything</p>
+              <div className="input-box">
+                <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit(input)} placeholder="Describe what you want me to do..." disabled={isProcessing} />
+                <button onClick={() => handleSubmit(input)} disabled={!input.trim() || isProcessing}>{isProcessing ? '⏳' : '➤'}</button>
+              </div>
+              <div className="quick-actions">
+                {EXAMPLES.map((ex, i) => (
+                  <button key={i} onClick={() => handleSubmit(ex.query)} disabled={isProcessing}><span>{ex.icon}</span><span>{ex.text}</span></button>
+                ))}
+              </div>
+            </section>
 
-        <div className="content-grid">
+            <div className="content-grid">
           <aside className="tasks-sidebar">
             <h2>Recent Tasks</h2>
             <div className="task-list">
@@ -206,6 +274,8 @@ function App() {
             )}
           </section>
         </div>
+          </>
+        )}
       </main>
       <footer className="footer"><p>Powered by OpenClaw + MiniMax-CN 2.5</p></footer>
     </div>
