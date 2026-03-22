@@ -2,8 +2,64 @@ import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { Task, TaskStatus, TaskInput } from '../../types/task';
 import { TaskManager } from '../../core/TaskManager';
+import { PlannerAgent } from '../../agents/PlannerAgent';
+import { OpenClawClient } from '../../agents/OpenClawClient';
 
 const router = Router();
+
+// Planner Agent 实例
+let plannerAgent: PlannerAgent | null = null;
+
+// OpenClaw 客户端实例
+let openClawClient: OpenClawClient | null = null;
+
+const getPlannerAgent = (): PlannerAgent => {
+  if (!plannerAgent) {
+    plannerAgent = new PlannerAgent();
+  }
+  return plannerAgent;
+};
+
+const getOpenClawClient = (): OpenClawClient => {
+  if (!openClawClient) {
+    openClawClient = new OpenClawClient(120);
+  }
+  return openClawClient;
+};
+
+/**
+ * 根据任务内容检测需要使用的 Agent
+ */
+function detectAgents(input: string): string[] {
+  const lowerInput = input.toLowerCase();
+  const agents: string[] = [];
+  
+  // 代码开发相关
+  if (lowerInput.includes('code') || lowerInput.includes('写代码') || 
+      lowerInput.includes('编程') || lowerInput.includes('python') ||
+      lowerInput.includes('javascript') || lowerInput.includes('开发')) {
+    agents.push('malong');
+  }
+  
+  // SEO/内容相关
+  if (lowerInput.includes('seo') || lowerInput.includes('内容') || 
+      lowerInput.includes('文章') || lowerInput.includes('写作')) {
+    agents.push('longyaren');
+  }
+  
+  // 搜索相关
+  if (lowerInput.includes('搜索') || lowerInput.includes('查找') || 
+      lowerInput.includes('research') || lowerInput.includes('调查')) {
+    agents.push('search');
+  }
+  
+  // 默认使用 malong
+  if (agents.length === 0) {
+    agents.push('malong');
+  }
+  
+  return agents;
+}
 
 // In-memory task storage (replace with TaskManager in production)
 const tasks: Map<string, Task> = new Map();
@@ -89,71 +145,133 @@ router.post('/', async (req: Request, res: Response) => {
 
   tasks.set(task.id, task);
 
-  // 使用 ManusTaskRunner 执行任务
+  // 使用 PlannerAgent 执行任务
   setImmediate(async () => {
+    const openClaw = getOpenClawClient();
+    
     try {
       task.status = TaskStatus.RUNNING;
       task.updatedAt = new Date();
       tasks.set(task.id, task);
       
-      // 模拟 Planning Agent 的思考过程
-      task.think = '正在分析任务需求...\n- 理解用户意图\n- 规划执行步骤\n- 准备工具';
+      // ========== 第一步：意图分析 + 任务规划 ==========
+      task.think = '🤔 正在分析任务需求...\n- 理解用户意图\n- 规划执行步骤\n- 分配 Agent';
       tasks.set(task.id, task);
       
-      await new Promise(r => setTimeout(r, 1500));
-      
-      task.think += '\n\n开始执行子任务：';
-      tasks.set(task.id, task);
+      // 调用 malong 进行任务规划
+      const planningPrompt = `你是一个任务规划专家。请分析以下用户需求，并拆分为具体的执行步骤。
 
-      // 模拟子任务执行 - 使用 any 绕过类型检查
-      const mockSubtasks: any[] = [
-        { id: uuidv4(), taskId: task.id, description: '搜索相关信息', agent: 'search', status: TaskStatus.RUNNING, input: task.input, output: { result: '找到相关信息' }, dependsOn: [] },
-        { id: uuidv4(), taskId: task.id, description: '分析数据', agent: 'analysis', status: TaskStatus.PENDING, input: task.input, output: { result: '分析完成' }, dependsOn: [] },
-        { id: uuidv4(), taskId: task.id, description: '生成结果', agent: 'code', status: TaskStatus.PENDING, input: task.input, output: { result: '任务完成' }, dependsOn: [] }
-      ];
+用户需求：${task.input}
+
+请按照以下 JSON 格式返回规划结果：
+{
+  "understanding": "对用户需求的理解",
+  "tasks": [
+    {"description": "子任务1的具体描述", "agent": "合适的agent(malong/longyaren/search)"},
+    {"description": "子任务2的具体描述", "agent": "合适的agent"}
+  ],
+  "summary": "整体任务摘要"
+}
+
+注意：
+- tasks 数组描述执行步骤
+- agent 必须是 malong(代码开发)、longyaren(内容写作)、search(搜索调研) 之一
+- 每个子任务应该是一个可独立执行的步骤
+- 直接返回 JSON，不要其他内容`;
+
+      const planningResult = await openClaw.spawn({
+        agent: 'malong',
+        input: planningPrompt,
+        timeout: 60,
+      });
       
-      task.subtasks = mockSubtasks;
+      if (!planningResult.success) {
+        throw new Error(`规划失败: ${planningResult.error}`);
+      }
+      
+      // 解析规划结果
+      let planning;
+      try {
+        const planningText = planningResult.output?.message || '';
+        const jsonMatch = planningText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          planning = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('无法解析规划结果');
+        }
+      } catch (parseErr) {
+        // 解析失败，使用简单规划
+        planning = {
+          understanding: '用户需求',
+          tasks: detectAgents(task.input).map(agent => ({
+            description: `执行任务: ${task.input}`,
+            agent
+          })),
+          summary: '任务执行'
+        };
+      }
+      
+      task.think = `📋 意图理解: ${planning.understanding}\n\n📝 任务规划 (${planning.tasks.length} 个步骤):\n${planning.tasks.map((t: any, i: number) => `${i+1}. ${t.description} (${t.agent})`).join('\n')}`;
+      tasks.set(task.id, task);
+      
+      // ========== 第二步：创建子任务 ==========
+      task.subtasks = planning.tasks.map((t: any) => ({
+        id: uuidv4(),
+        taskId: task.id,
+        description: t.description,
+        agent: t.agent || 'malong',
+        status: TaskStatus.PENDING,
+        input: task.input,
+        output: null,
+        dependsOn: []
+      })) as any;
       task.currentStep = 1;
       tasks.set(task.id, task);
       
-      // 子任务1: 搜索
-      await new Promise(r => setTimeout(r, 2000));
-      mockSubtasks[0].status = TaskStatus.COMPLETED;
-      mockSubtasks[0].output = { result: '找到相关信息' };
-      task.think += '\n✓ 搜索完成';
-      tasks.set(task.id, task);
-      
-      // 子任务2: 分析
-      mockSubtasks[1].status = TaskStatus.RUNNING;
-      task.currentStep = 2;
-      tasks.set(task.id, task);
-      
-      await new Promise(r => setTimeout(r, 2000));
-      mockSubtasks[1].status = TaskStatus.COMPLETED;
-      mockSubtasks[1].output = { result: '分析完成' };
-      task.think += '\n✓ 分析完成';
-      tasks.set(task.id, task);
-      
-      // 子任务3: 生成结果
-      mockSubtasks[2].status = TaskStatus.RUNNING;
-      task.currentStep = 3;
-      tasks.set(task.id, task);
-      
-      await new Promise(r => setTimeout(r, 1500));
-      mockSubtasks[2].status = TaskStatus.COMPLETED;
-      mockSubtasks[2].output = { result: '任务完成' };
-      task.think += '\n✓ 所有任务完成';
+      // ========== 第三步：执行每个子任务 ==========
+      for (let i = 0; i < task.subtasks.length; i++) {
+        const subtask = task.subtasks[i] as any;
+        subtask.status = TaskStatus.RUNNING;
+        task.think += `\n\n⚡ 执行步骤 ${i+1}/${task.subtasks.length}: ${subtask.description}`;
+        tasks.set(task.id, task);
+        
+        try {
+          // 使用 OpenClaw 调用真实 Agent
+          const result = await openClaw.spawn({
+            agent: subtask.agent,
+            input: `请完成以下任务：${subtask.description}\n\n原始用户需求：${task.input}`,
+            timeout: 120,
+          });
+          
+          if (result.success) {
+            subtask.status = TaskStatus.COMPLETED;
+            const output = result.output?.message || result.output?.summary || JSON.stringify(result.output);
+            subtask.output = { message: output, meta: result.output?.meta };
+            task.think += `\n✓ 步骤完成`;
+          } else {
+            subtask.status = TaskStatus.FAILED;
+            subtask.output = { error: result.error };
+            task.think += `\n✗ 步骤失败: ${result.error}`;
+          }
+        } catch (subError) {
+          subtask.status = TaskStatus.FAILED;
+          subtask.output = { error: String(subError) };
+          task.think += `\n✗ 步骤失败: ${subError}`;
+        }
+        tasks.set(task.id, task);
+      }
       
       task.status = TaskStatus.COMPLETED;
-      task.result = { 
-        summary: '任务已完成',
-        details: '根据您的要求，已完成搜索、分析和结果生成'
+      task.result = {
+        summary: '任务执行完成',
+        details: task.subtasks.map((s: any) => s.description).join(', ')
       };
       task.updatedAt = new Date();
       tasks.set(task.id, task);
     } catch (error) {
       task.status = TaskStatus.FAILED;
       task.error = String(error);
+      task.think += `\n\n❌ 任务执行失败: ${error}`;
       task.updatedAt = new Date();
       tasks.set(task.id, task);
     }

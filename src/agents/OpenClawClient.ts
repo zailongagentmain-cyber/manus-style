@@ -1,9 +1,13 @@
 /**
  * OpenClaw 集成层
- * 封装 sessions_spawn 调用，处理响应和错误
+ * 封装 openclaw agent CLI 调用，处理响应和错误
  */
 
 import { randomUUID } from 'crypto';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export interface SpawnOptions {
   agent: string;
@@ -22,13 +26,13 @@ export interface SpawnResult {
 
 /**
  * OpenClaw 客户端
- * 封装与 OpenClaw sessions_spawn 的交互
+ * 通过 openclaw agent CLI 与 OpenClaw 交互
  */
 export class OpenClawClient {
-  private gatewayUrl: string;
+  private timeout: number;
 
-  constructor(gatewayUrl: string = 'http://localhost:3000') {
-    this.gatewayUrl = gatewayUrl;
+  constructor(timeout: number = 120) {
+    this.timeout = timeout;
   }
 
   /**
@@ -39,43 +43,99 @@ export class OpenClawClient {
   }
 
   /**
-   * 调用 sessions_spawn 执行 Agent 任务
-   * 注意：这是模拟实现，实际会调用 OpenClaw 的 sessions_spawn
+   * 调用 openclaw agent CLI 执行 Agent 任务
    */
   async spawn(options: SpawnOptions): Promise<SpawnResult> {
     const startTime = Date.now();
     const sessionId = this.generateTaskId();
+    const timeout = options.timeout || this.timeout;
 
     try {
-      // 构建请求
-      const requestBody = {
-        id: sessionId,
-        agent: options.agent,
-        input: options.input,
-        metadata: options.metadata || {},
-      };
+      // 构建 openclaw agent 命令
+      const agent = options.agent;
+      const message = options.input;
+      const command = `openclaw agent --agent ${agent} --message "${message.replace(/"/g, '\\"')}" --timeout ${timeout} --json`;
 
-      // 模拟调用 OpenClaw sessions_spawn API
-      // 实际实现中，这里应该是:
-      // const response = await fetch(`${this.gatewayUrl}/api/sessions_spawn`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(requestBody),
-      // });
+      // 执行命令
+      const { stdout, stderr } = await execAsync(command, {
+        timeout: timeout * 1000,
+        maxBuffer: 10 * 1024 * 1024, // 10MB
+      });
+
+      // 解析 JSON 响应 - 过滤掉插件加载信息
+      let result;
+      try {
+        // 使用正则表达式提取最后一个完整的 JSON 对象
+        // 匹配从最后一个 { 到最后一个 } 的完整 JSON
+        const jsonMatch = stdout.match(/\{[\s\S]*\}\s*\}\s*$/);
+        if (jsonMatch) {
+          result = JSON.parse(jsonMatch[0]);
+        } else {
+          // 尝试直接解析
+          result = JSON.parse(stdout);
+        }
+      } catch (parseErr) {
+        // 尝试提取 stderr 中的 JSON（如果 stdout 为空）
+        try {
+          const lastBrace = stderr.lastIndexOf('{');
+          if (lastBrace >= 0) {
+            const jsonStr = stderr.substring(lastBrace);
+            result = JSON.parse(jsonStr);
+          } else {
+            // 解析失败，返回错误
+            return {
+              success: false,
+              error: 'Failed to parse response: ' + String(parseErr),
+              sessionId,
+              duration: Date.now() - startTime,
+            };
+          }
+        } catch {
+          return {
+            success: false,
+            error: 'Failed to parse response',
+            sessionId,
+            duration: Date.now() - startTime,
+          };
+        }
+      }
+
+      // 检查执行状态 - 忽略插件日志前缀
+      if (result.status === 'ok' || (result.result && result.result.payloads)) {
+        return {
+          success: true,
+          output: {
+            message: result.result?.payloads?.[0]?.text || 'No output',
+            summary: result.summary,
+            meta: {
+              durationMs: result.result?.meta?.durationMs,
+              model: result.result?.meta?.agentMeta?.model,
+              usage: result.result?.meta?.agentMeta?.usage,
+            },
+          },
+          sessionId: result.runId || sessionId,
+          duration: Date.now() - startTime,
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error || 'Unknown error',
+          sessionId,
+          duration: Date.now() - startTime,
+        };
+      }
+    } catch (error: any) {
+      // 处理执行错误
+      let errorMessage = error.message || 'Unknown error';
       
-      // 模拟响应（实际使用时替换为真实 API 调用）
-      const result = await this.mockSpawn(requestBody);
-
-      return {
-        success: true,
-        output: result.output,
-        sessionId,
-        duration: Date.now() - startTime,
-      };
-    } catch (error) {
+      // 超时错误
+      if (error.killed || error.code === 'ETIMEDOUT') {
+        errorMessage = `Agent execution timeout (${timeout}s)`;
+      }
+      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
         sessionId,
         duration: Date.now() - startTime,
       };
@@ -83,55 +143,32 @@ export class OpenClawClient {
   }
 
   /**
-   * 模拟 spawn 调用（实际使用时替换为真实 API）
-   */
-  private async mockSpawn(request: {
-    id: string;
-    agent: string;
-    input: string;
-    metadata?: Record<string, any>;
-  }): Promise<{ output: any }> {
-    // 模拟延迟
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // 根据 agent 类型返回模拟结果
-    const agentResponses: Record<string, any> = {
-      malong: {
-        message: '码龙执行完成',
-        result: { code: 'generated', message: '代码已生成' },
-      },
-      longyaren: {
-        message: '龙雅人执行完成',
-        result: { analysis: 'completed', data: {} },
-      },
-      search: {
-        message: '搜索执行完成',
-        result: { results: [], count: 0 },
-      },
-      browser: {
-        message: '浏览器执行完成',
-        result: { screenshot: 'base64...', action: 'completed' },
-      },
-    };
-
-    return {
-      output: agentResponses[request.agent] || { message: 'Unknown agent' },
-    };
-  }
-
-  /**
-   * 检查 OpenClaw 网关状态
+   * 检查 OpenClaw Gateway 状态
    */
   async healthCheck(): Promise<boolean> {
     try {
-      // 实际实现中：
-      // const response = await fetch(`${this.gatewayUrl}/api/health`);
-      // return response.ok;
-      
-      // 模拟健康检查
-      return true;
+      const { stdout } = await execAsync('openclaw status --json', {
+        timeout: 5000,
+      });
+      const result = JSON.parse(stdout);
+      return result?.Gateway?.status === 'running';
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * 获取可用的 Agent 列表
+   */
+  async listAgents(): Promise<string[]> {
+    try {
+      const { stdout } = await execAsync('openclaw agents list --json', {
+        timeout: 5000,
+      });
+      const result = JSON.parse(stdout);
+      return result?.agents?.map((a: any) => a.id) || [];
+    } catch {
+      return [];
     }
   }
 }
@@ -140,3 +177,5 @@ export class OpenClawClient {
  * 创建默认的 OpenClaw 客户端实例
  */
 export const openClawClient = new OpenClawClient();
+
+export default OpenClawClient;

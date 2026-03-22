@@ -327,6 +327,39 @@ export class PlannerAgent {
       validation,
     };
   }
+
+  /**
+   * 执行子任务
+   * 根据 agent 类型调用不同的执行器
+   */
+  async executeSubtask(description: string, agent: string, originalInput: string): Promise<any> {
+    // 构建执行提示词
+    const prompt = `你是一个专业的 ${agent} 助手。请根据以下任务描述执行任务。
+
+原始任务: ${originalInput}
+子任务描述: ${description}
+
+请直接给出结果，不需要解释过程。`;
+
+    try {
+      const response = await this.llmClient.chat([
+        { role: 'system', content: `你是一个专业的 ${agent} 助手。` },
+        { role: 'user', content: prompt }
+      ]);
+
+      return {
+        result: response.content,
+        agent,
+        success: true
+      };
+    } catch (error) {
+      return {
+        error: String(error),
+        agent,
+        success: false
+      };
+    }
+  }
 }
 
 export default PlannerAgent;

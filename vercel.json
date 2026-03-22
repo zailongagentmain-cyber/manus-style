@@ -2,6 +2,22 @@
   "version": 2,
   "builds": [
     {
+      "src": "web/dist/index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "web/dist/assets/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "web/dist/assets/*.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "web/dist/*.svg",
+      "use": "@vercel/static"
+    },
+    {
       "src": "api/index.ts",
       "use": "@vercel/node"
     }
@@ -12,8 +28,20 @@
       "dest": "/api/index.ts"
     },
     {
-      "src": "/api/v1/tasks",
-      "dest": "/api/index.ts"
+      "src": "/assets/(.*)",
+      "dest": "/web/dist/assets/$1"
+    },
+    {
+      "src": "/favicon.svg",
+      "dest": "/web/dist/favicon.svg"
+    },
+    {
+      "src": "/icons.svg",
+      "dest": "/web/dist/icons.svg"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/web/dist/index.html"
     }
   ]
 }

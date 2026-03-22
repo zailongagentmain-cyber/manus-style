@@ -1,0 +1,79 @@
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.task-item:hover {
+  background: #313244;
+}
+
+.task-item.selected {
+  background: #313244;
+  border-color: #89b4fa;
+}
+
+.task-item .task-status-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.task-item .task-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-item .task-input {
+  color: #cdd6f4;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-item .task-time {
+  color: #6c7086;
+  font-size: 12px;
+}
+
+.task-item .status-badge {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.task-item .status-badge.pending {
+  background: rgba(108, 112, 134, 0.2);
+  color: #6c7086;
+}
+
+.task-item .status-badge.running {
+  background: rgba(137, 180, 250, 0.2);
+  color: #89b4fa;
+}
+
+.task-item .status-badge.completed {
+  background: rgba(166, 227, 161, 0.2);
+  color: #a6e3a1;
+}
+
+.task-item .status-badge.failed {
+  background: rgba(243, 139, 168, 0.2);
+  color: #f38ba8;
+}
+
+.task-item .status-badge.paused {
+  background: rgba(249, 226, 175, 0.2);
+  color: #f9e2af;
+}
