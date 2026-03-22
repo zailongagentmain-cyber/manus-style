@@ -6,6 +6,7 @@ import tasksRouter from './routes/tasks';
 import configRouter from './routes/config';
 import healthRouter from './routes/health';
 import chatStreamRouter from './routes/chat-stream';
+import filesRouter from './routes/files';
 import { setupWebSocket } from './ws/handler';
 import ConfigLoader from '../core/ConfigLoader';
 
@@ -36,6 +37,7 @@ export function createApp(): Application {
   app.use('/api/v1/config', configRouter);
   app.use('/api/v1/health', healthRouter);
   app.use('/api/v1', chatStreamRouter);
+  app.use('/api/v1', filesRouter);
 
   // Root endpoint
   app.get('/', (req: Request, res: Response) => {
