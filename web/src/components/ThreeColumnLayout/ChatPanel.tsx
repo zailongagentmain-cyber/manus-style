@@ -2,10 +2,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Message } from './ThreeColumnLayout';
 
-// API 配置 - 开发环境使用 localhost:3001，生产环境使用 /api/v1
-const API_BASE = import.meta.env.DEV 
-  ? 'http://localhost:3001/api/v1' 
-  : '/api/v1';
+// API 配置 - 根据环境选择 API 地址
+const API_BASE = '/api/v1';
 
 interface ChatPanelProps {
   messages: Message[];
