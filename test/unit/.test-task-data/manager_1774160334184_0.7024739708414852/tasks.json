@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "id": "task_1774160334184_80a3ef65",
+      "userId": "user_1",
+      "channel": "feishu",
+      "input": "a",
+      "status": "pending",
+      "currentStep": 0,
+      "subtasks": [],
+      "createdAt": "2026-03-22T06:18:54.184Z",
+      "updatedAt": "2026-03-22T06:18:54.184Z",
+      "metadata": {}
+    },
+    {
+      "id": "task_1774160334184_937f8625",
+      "userId": "user_2",
+      "channel": "feishu",
+      "input": "b",
+      "status": "pending",
+      "currentStep": 0,
+      "subtasks": [],
+      "createdAt": "2026-03-22T06:18:54.184Z",
+      "updatedAt": "2026-03-22T06:18:54.184Z",
+      "metadata": {}
+    }
+  ]
+}

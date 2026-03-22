@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "id": "task_1774160334192_61aee102",
+      "userId": "user_1",
+      "channel": "feishu",
+      "input": "test",
+      "status": "failed",
+      "currentStep": 0,
+      "subtasks": [],
+      "createdAt": "2026-03-22T06:18:54.192Z",
+      "updatedAt": "2026-03-22T06:18:54.192Z",
+      "metadata": {},
+      "completedAt": "2026-03-22T06:18:54.192Z",
+      "error": "Something went wrong"
+    }
+  ]
+}

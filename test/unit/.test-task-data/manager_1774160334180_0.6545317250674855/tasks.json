@@ -1,0 +1,35 @@
+{
+  "tasks": [
+    {
+      "id": "task_1774160334180_2d9b50ff",
+      "userId": "user_1",
+      "channel": "feishu",
+      "input": "test message",
+      "status": "pending",
+      "currentStep": 0,
+      "subtasks": [
+        {
+          "id": "subtask_task_1774160334180_2d9b50ff_0",
+          "taskId": "task_1774160334180_2d9b50ff",
+          "description": "step 1",
+          "agent": "search",
+          "status": "pending",
+          "input": "query",
+          "dependsOn": []
+        },
+        {
+          "id": "subtask_task_1774160334180_2d9b50ff_1",
+          "taskId": "task_1774160334180_2d9b50ff",
+          "description": "step 2",
+          "agent": "browser",
+          "status": "pending",
+          "input": "url",
+          "dependsOn": []
+        }
+      ],
+      "createdAt": "2026-03-22T06:18:54.180Z",
+      "updatedAt": "2026-03-22T06:18:54.180Z",
+      "metadata": {}
+    }
+  ]
+}
